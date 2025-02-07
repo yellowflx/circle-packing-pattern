@@ -1,0 +1,303 @@
+<!doctype html>
+<html>
+    <head>
+        <title>Emoji Circle Packing</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                margin: 20px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+            .controls {
+                margin-bottom: 20px;
+                padding: 15px;
+                background: #f0f0f0;
+                border-radius: 8px;
+            }
+            .control-group {
+                margin: 10px 0;
+            }
+            canvas {
+                border: 1px solid #ccc;
+                border-radius: 8px;
+            }
+            button {
+                padding: 8px 16px;
+                background: #4caf50;
+                color: white;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+            }
+            button:hover {
+                background: #45a049;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="controls">
+            <div class="control-group">
+                <label>Canvas Width: </label>
+                <input
+                    type="number"
+                    id="canvasWidth"
+                    value="800"
+                    min="300"
+                    max="2000"
+                />
+            </div>
+            <div class="control-group">
+                <label>Canvas Height: </label>
+                <input
+                    type="number"
+                    id="canvasHeight"
+                    value="800"
+                    min="300"
+                    max="2000"
+                />
+            </div>
+            <div class="control-group">
+                <label>Number of Emojis: </label>
+                <input
+                    type="number"
+                    id="numCircles"
+                    value="400"
+                    min="10"
+                    max="200"
+                />
+            </div>
+            <button onclick="generatePattern()">Generate New Pattern</button>
+        </div>
+        <canvas id="emojiCanvas"></canvas>
+
+        <script>
+            const canvas = document.getElementById("emojiCanvas");
+            const ctx = canvas.getContext("2d");
+
+            // Emoji array (you can add more)
+            const emojis = [
+                "😀",
+                "😂",
+                "😍",
+                "🤔",
+                "😎",
+                "😭",
+                "😡",
+                "😴",
+                "🤯",
+                "👍",
+                "👎",
+                "❤️",
+                "💔",
+                "💯",
+                "🔥",
+                "🎉",
+                "🍕",
+                "🍔",
+                "🚀",
+                "⭐",
+                "🐶",
+                "🐱",
+                "🐭",
+                "🐹",
+                "🐰",
+                "🦊",
+                "🐻",
+                "🐼",
+                "🐨",
+                "🐯",
+                "🦁",
+                "🐮",
+                "🐷",
+                "🐸",
+                "🐒",
+                "🐔",
+                "🐧",
+                "🐦",
+                "🦉",
+                "🦋",
+                "💐",
+                "🌸",
+                "🌷",
+                "🌻",
+                "🌹",
+                "🍁",
+                "🌴",
+                "🌵",
+                "🍄",
+                "🌍",
+                "☀️",
+                "🌙",
+                "⭐",
+                "☁️",
+                "🌈",
+                "☔",
+                "⚡",
+                "❄️",
+                "☃️",
+                "🔥",
+                "⚽",
+                "🏀",
+                "🏈",
+                "⚾",
+                "🎾",
+                "🏐",
+                "🏓",
+                "🏸",
+                "🏒",
+                "🎽",
+                "🎤",
+                "🎧",
+                "🎨",
+                "🎬",
+                "🎮",
+                "📱",
+                "💻",
+                "⌚",
+                "⏰",
+                "🔑",
+                "🏠",
+                "🏢",
+                "🚗",
+                "✈️",
+                "🚢",
+                "🚂",
+                "🚲",
+                "🛵",
+                "🚦",
+                "⛽",
+                "🎁",
+                "🎈",
+                "🎀",
+                "🎊",
+                "🎉",
+                "🎂",
+                "💍",
+                "❤️",
+                "💔",
+                "❣",
+                "⭐",
+                "🌟",
+                "✨",
+                "💯",
+                "💢",
+                "💤",
+                "💨",
+                "💦",
+                "💣",
+                "💥",
+                "💬",
+                "👁️",
+                "👂",
+                "👃",
+                "👅",
+                "👄",
+                "👋",
+                "👏",
+                "🙏",
+                "💪",
+                "🚶",
+                "🏃",
+                "💃",
+                "🕺",
+                "👯",
+                "🙆",
+                "🙅",
+                "🙇",
+                "🙋",
+                "💁",
+            ];
+
+            class Circle {
+                constructor(x, y, r, emoji) {
+                    this.x = x;
+                    this.y = y;
+                    this.r = r;
+                    this.emoji = emoji;
+                    this.rotation =
+                        ((Math.random() * 100 - 50) * Math.PI) / 180; // -50 to +50 degrees
+                }
+
+                draw() {
+                    ctx.save();
+                    ctx.translate(this.x, this.y);
+                    ctx.rotate(this.rotation);
+                    ctx.font = `${this.r * 2}px Arial`;
+                    ctx.textAlign = "center";
+                    ctx.textBaseline = "middle";
+                    ctx.fillText(this.emoji, 0, 0);
+                    ctx.restore();
+                }
+
+                isOverlapping(other) {
+                    const dx = this.x - other.x;
+                    const dy = this.y - other.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    return distance < this.r + other.r;
+                }
+            }
+
+            function resizeCanvas() {
+                const width = parseInt(
+                    document.getElementById("canvasWidth").value,
+                );
+                const height = parseInt(
+                    document.getElementById("canvasHeight").value,
+                );
+                canvas.width = width;
+                canvas.height = height;
+            }
+
+            function getRandomEmoji() {
+                return emojis[Math.floor(Math.random() * emojis.length)];
+            }
+
+            function generatePattern() {
+                resizeCanvas();
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                const circles = [];
+                const numCircles = parseInt(
+                    document.getElementById("numCircles").value,
+                );
+                const maxAttempts = 1000;
+
+                for (let i = 0; i < numCircles; i++) {
+                    let attempts = 0;
+                    let placed = false;
+
+                    while (!placed && attempts < maxAttempts) {
+                        const r = Math.random() * 20 + 10; // Random radius between 10 and 30
+                        const x = Math.random() * (canvas.width - 2 * r) + r;
+                        const y = Math.random() * (canvas.height - 2 * r) + r;
+                        const emoji = getRandomEmoji();
+
+                        const newCircle = new Circle(x, y, r, emoji);
+                        let overlapping = false;
+
+                        // Check for overlaps
+                        for (const circle of circles) {
+                            if (newCircle.isOverlapping(circle)) {
+                                overlapping = true;
+                                break;
+                            }
+                        }
+
+                        if (!overlapping) {
+                            circles.push(newCircle);
+                            newCircle.draw();
+                            placed = true;
+                        }
+                        attempts++;
+                    }
+                }
+            }
+
+            // Initial setup
+            resizeCanvas();
+            generatePattern();
+        </script>
+    </body>
+</html>
